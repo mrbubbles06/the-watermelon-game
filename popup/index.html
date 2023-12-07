@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>p5play</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Lexend+Exa:100,200,300,regular,500,600,700,800,900"
+      rel="stylesheet" />
+    <style>
+      html,
+      body {
+        background-color: #edecc9;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        font-family: Lexend Exa;
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 900;
+        line-height: 100%; /* 32px */
+        letter-spacing: -2.88px;
+      }
+
+      body {
+        overscroll-behavior: none;
+        height: 100%;
+        width: 800px;
+        display: grid;
+        place-items: center;
+        grid-template-columns: 175px 450px 175px;
+        grid-template-rows: 600px;
+      }
+
+      svg {
+        justify-self: end;
+      }
+
+      .beforeCanvas,
+      .afterCanvas {
+        background: #edecc9;
+        height: 100%;
+        width: 100%;
+        grid-row: 1 / 2;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        justify-content: center;
+        margin-top: 2rem;
+        align-items: center;
+        grid-template-rows: repeat(5, 1fr);
+        justify-items: center;
+      }
+
+      .beforeCanvas {
+        grid-column: 1 / 2;
+      }
+
+      .afterCanvas {
+        grid-column: 3 / 4;
+      }
+
+      main {
+        grid-column: 2 / 3;
+        grid-row: 1 / 2;
+        margin: 0;
+        padding: 0;
+      }
+
+      .afterCanvas .bubble {
+        font-size: 16px;
+        gap: 0;
+      }
+
+      .bubble {
+        height: 150px;
+        aspect-ratio: 1;
+        background-color: whitesmoke;
+        border-radius: 50%;
+        display: grid;
+        align-content: center;
+        justify-content: center;
+        justify-items: center;
+        font-size: 32px;
+        gap: 1rem;
+        box-shadow: 6px 6px 9.3px rgba(0, 0, 0, 0.25);
+      }
+
+      .highScore {
+        display: grid;
+        justify-content: center;
+        align-items: center;
+        align-content: center;
+        justify-items: center;
+        grid-template-columns: 1fr 1fr;
+        width: max-content;
+        gap: 0.5rem;
+      }
+
+      #highscore {
+        color: #f4be33;
+        justify-self: start;
+      }
+
+      .highScoreTitle {
+        grid-column: span 2;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="beforeCanvas">
+      <div class="bubble">Score<span id="score">0</span></div>
+      <div class="highScore">
+        <div class="highScoreTitle">High Score:</div>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="23"
+          height="23"
+          viewBox="0 0 23 23"
+          fill="none">
+          <path d="M1 1H22V22H1V1Z" fill="white" fill-opacity="0.01" />
+          <path
+            d="M11.5 20.25C16.3325 20.25 20.25 16.3325 20.25 11.5C20.25 6.66751 16.3325 2.75 11.5 2.75C6.66751 2.75 2.75 6.66751 2.75 11.5C2.75 16.3325 6.66751 20.25 11.5 20.25Z"
+            fill="#EEC945"
+            stroke="#F4BE33"
+            stroke-width="4.66704"
+            stroke-linecap="round"
+            stroke-linejoin="round" />
+          <path
+            d="M6.6875 13.6875V9.3125L9.3125 10.625L11.5 7.5625L13.6875 10.625L16.3125 9.3125V13.6875H6.6875Z"
+            fill="#F8D043"
+            stroke="white"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+        <span id="highscore">0</span>
+      </div>
+      <div>
+        <a
+          href="https://docs.google.com/forms/d/e/1FAIpQLSdH9D0k6YH9oQBCbMUuSuRfGeQ2u0MZs_yO0iBOPXUoKJKSZA/viewform?usp=sf_link"
+          >Feedback / Bug report</a
+        >
+      </div>
+    </div>
+    <div class="afterCanvas">
+      <div class="bubble">
+        <p>Next Ball:</p>
+        <img id="nextball" src="" alt="" />
+      </div>
+      <div>
+        <a href="https://mrbubbles.pages.dev/suikagame/credits.txt">Credits</a>
+      </div>
+    </div>
+    <script src="p5.min.js"></script>
+    <!-- <script src="p5.sound.min.js"></script> -->
+    <script src="planck.min.js"></script>
+    <script src="p5play.min.js"></script>
+    <script src="sketch.js"></script>
+  </body>
+</html>
