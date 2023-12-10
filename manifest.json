@@ -1,10 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "Suika Game",
-  "description": "Fun Watermelon Game",
-  "version": "1.0",
+  "name": "The Watermelon Game",
+  "description": "Fun watermelon merge game",
+  "version": "1.1.2",
   "action": {
     "default_popup": "popup/index.html",
     "default_icon": "popup/assets/watermelon.png"
-  }
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "watermelon@mrbubbles.dev",
+      "strict_min_version": "42.0"
+    }
+  } 
 }
