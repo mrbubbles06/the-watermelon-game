@@ -1,4 +1,15 @@
 // new Q5();
+/*
+Completed features added since update:
+
+In progress features added since update:
+- points appearing floating from fruits when combining
+
+Bugs squashed:
+
+Tweaks:
+
+*/
 
 let balls,
   ground,
@@ -11,12 +22,27 @@ let balls,
   cloud,
   bounds,
   lossLine,
-  lossArea;
+  lossArea,
+  isGameOver;
+
+const weightedArrays = {
+  initGame: [0, 1, 2, 3, 4],
+  midGame: [0, 0, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4],
+  endGame: [0, 1, 2, 2, 2, 3, 3, 3, 4, 4],
+};
 
 const domScore = document.getElementById("score");
 const domNextBall = document.getElementById("nextball");
 const domHighScore = document.getElementById("highscore");
+const domFastDrop = document.getElementById("fastDrop");
+const domNoGameOver = document.getElementById("noGameOver");
+const domShakeBtn = document.getElementById("shake");
+domShakeBtn.addEventListener("click", shakeClicked);
+const domShakeCount = document.getElementById("shakeCount");
+const domShakeCountdown = document.getElementById("shakeCountdown");
 document.getElementById("resetHighScore").addEventListener("click", resetHighScore);
+
+let enabledCheats = false;
 
 let images = [
   "assets/cherry.png",
@@ -39,7 +65,11 @@ let diameters = [30, 46, 75, 80, 100, 125, 150, 177, 200, 230, 290];
 let score = 0;
 let highScore;
 let ballsDropped = 0;
+
 let ballTimeout = 1000;
+let shakeStrength = 50;
+
+let numOfShakes = 0;
 
 function setup() {
   new Canvas(448, 599);
@@ -53,15 +83,15 @@ function setup() {
   wall2 = new bounds.Sprite(canvas.w, canvas.h / 2, 1, canvas.h, "s");
   wall2.color = "gray";
 
-  ground = new bounds.Sprite(canvas.w / 2, canvas.h, canvas.w, 1, "s");
+  ground = new bounds.Sprite(canvas.w / 2, canvas.h, canvas.w * 2, 1, "s");
   ground.color = "gray";
   ground.bounciness = 0;
 
   lossLine = new loss.Sprite(canvas.w / 2, 115, canvas.w, 1, "s");
   lossLine.visible = false;
   lossLine.stroke = "red";
-  lossLine.strokeWeight = 12;
-  lossArea = new loss.Sprite(canvas.w / 2, 215, canvas.w, 200, "s");
+  lossLine.strokeWeight = 6;
+  lossArea = new loss.Sprite(canvas.w / 2, 175, canvas.w, 100, "s");
   lossArea.visible = false;
 
   nextBall = new Sprite(canvas.w - 100, 100);
@@ -98,17 +128,18 @@ function setup() {
   canDrop = true;
 
   highScore = getHighScore();
-  ballsDropped = getItem("ballsDropped");
 
   renderDomScore();
 }
 
 let lossAreaTimer = 0;
+let tempBallShakeTimer = 0;
 
 function draw() {
   background("#edecc5");
 
   // renderStats();
+  if (enabledCheats) background("black");
 
   mouseX > 0 && mouseX < canvas.w
     ? cloud.moveTowards(mouseX, cloud.y, 0.2)
@@ -118,7 +149,10 @@ function draw() {
     cloudBall.y = cloud.y + 50;
   }
 
-  // if (mouseIsPressed) mouseReleased();
+  if (kb.pressed("e")) {
+    shakeClicked();
+  }
+  doEarthquake();
 
   for (let x of balls) {
     if (x.isCloud) continue;
@@ -129,7 +163,6 @@ function draw() {
       lossAreaTimer++;
     } else lossLine.visible = false;
     if (x.overlapping(lossLine) > 60) gameOver();
-    // if (x.overlappin)
   }
 
   if (kb.presses("p")) allSprites.debug = !allSprites.debug;
@@ -141,9 +174,60 @@ function draw() {
   strokeWeight(1);
 }
 
+let doShake = false;
+async function doEarthquake() {
+  if (!doShake) return;
+  for (let ball of balls) {
+    if (ball.isCloud) continue;
+    ball.moveTowards(
+      ball.x + random(-shakeStrength, shakeStrength),
+      ball.y + random(-shakeStrength, shakeStrength)
+    );
+  }
+  await delay(2000);
+  doShake = false;
+}
+
+function shakeClicked() {
+  if (domShakeBtn.disabled || numOfShakes < 1) return;
+  let shakeCountdown = 15;
+  numOfShakes--;
+  domShakeCount.innerText = numOfShakes;
+  doShake = true;
+  domShakeBtn.disabled = true;
+  domShakeCountdown.style.display = "";
+  domShakeCountdown.innerText = 15;
+  let countdown = setInterval(() => {
+    if (!domShakeBtn.disabled) return;
+    if (shakeCountdown < 0) clearInterval(countdown);
+    domShakeCountdown.innerText = --shakeCountdown;
+  }, 1000);
+  setTimeout(() => {
+    domShakeCountdown.style.display = "none";
+    if (numOfShakes == 0) return;
+    domShakeBtn.disabled = false;
+  }, 15000);
+}
+
+function getWeightedBall(balls) {
+  if (balls > 50)
+    return weightedArrays.endGame[
+      Math.floor(Math.random() * weightedArrays.endGame.length)
+    ];
+  else if (balls > 25)
+    return weightedArrays.midGame[
+      Math.floor(Math.random() * weightedArrays.midGame.length)
+    ];
+  else
+    return weightedArrays.initGame[
+      Math.floor(Math.random() * weightedArrays.initGame.length)
+    ];
+}
+
 function renderDomScore() {
   domScore.innerText = score;
-  domHighScore.innerText = highScore;
+  if (enabledCheats) domHighScore.innerText = "###";
+  else domHighScore.innerText = highScore;
 }
 
 function renderDomBall() {
@@ -152,8 +236,10 @@ function renderDomBall() {
 }
 
 function gameOver() {
+  if (isGameOver || doShake) return;
+  isGameOver = true;
   alert("You lost!");
-  window.location = window.location;
+  location.reload();
 }
 
 function resetHighScore() {
@@ -163,11 +249,12 @@ function resetHighScore() {
     )
   ) {
     storeItem("highscore", 0);
-    window.location = window.location;
+    location.reload();
   } else return;
 }
 
 function saveHighScore(score) {
+  if (enabledCheats) return;
   storeItem("highscore", score);
 }
 
@@ -210,6 +297,8 @@ async function destroyFruits(fruit1, fruit2) {
 
   fruit1.remove();
   fruit2.remove();
+
+  // displayScoreText((aX + bX) / 2, (aY + bY) / 2, points[tier], diameters[tier + 1]);
   if (tier == 10) return;
 
   let ball = createBall((aX + bX) / 2, (aY + bY) / 2, tier + 1);
@@ -217,14 +306,32 @@ async function destroyFruits(fruit1, fruit2) {
   ball.moveTowards(aIndex >= bIndex ? aX : bX, aY >= bY ? bY : aY, 0.02);
 }
 
+function displayScoreText(x, y, points, di) {
+  console.log("shwoop!");
+  let distance = 0;
+  let interval = setInterval(() => {
+    // text("+" + points, x + di, y - distance);
+    ellipse(200, 200, 200, 200);
+    distance++;
+    console.log(distance);
+    if (distance >= 180) clearInterval(interval);
+  }, deltaTime);
+}
+
 function mouseReleased() {
-  if (mouseX <= -15 || mouseX >= canvas.w + 15) return;
+  if (mouseX <= -25 || mouseX >= canvas.w + 25) return;
   if (!canDrop) return;
   canDrop = false;
   ballsDropped++;
-  storeItem("ballsDropped", ballsDropped);
+  storeItem("ballsDropped", getItem("ballsDropped") + 1);
   let ball = cloudBall;
   cloudBall = undefined;
+
+  if (ballsDropped % 25 == 0) {
+    numOfShakes++;
+    domShakeCount.innerText = numOfShakes;
+    domShakeBtn.disabled = false;
+  }
 
   ball.collider = "d";
   ball.isCloud = false;
@@ -241,7 +348,7 @@ function mouseReleased() {
 }
 
 function queueBall() {
-  nextBall.tier = round(random(0, 4));
+  nextBall.tier = getWeightedBall(ballsDropped);
   nextBall.diameter = diameters[nextBall.tier];
   nextBall.img = images[nextBall.tier];
   // nextBall.text = nextBall.diameter;
@@ -269,3 +376,25 @@ function createBall(x, y, tier) {
   // ball.text = ball.diameter;
   return ball;
 }
+
+domFastDrop.addEventListener("change", (e) => {
+  if (domFastDrop.checked) ballTimeout = 100;
+  else ballTimeout = 1000;
+  enabledCheats = true;
+});
+
+domNoGameOver.addEventListener("change", (e) => {
+  if (domNoGameOver.checked) {
+    gameOver = () => {
+      console.log("You lost!");
+    };
+  } else {
+    gameOver = () => {
+      if (isGameOver) return;
+      isGameOver = true;
+      alert("You lost!");
+      location.reload();
+    };
+  }
+  enabledCheats = true;
+});

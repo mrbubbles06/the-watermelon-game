@@ -15,17 +15,22 @@ document.addEventListener("DOMContentLoaded", () => {
   if (localStorage.getItem("version") != chrome.runtime.getManifest().version) {
     alert(
       `New update!
-      Fixes:
-      -Fixed the bug where the fruits would infinitly combine.
-      -Played around with the physics of combining fruits (now they have a little explotion that effect the fruits around them)
-      Additions:
-      -Added a button to reset the high score achieved by doing afformentioned infinite combining.
-      -Changed the way a game over is triggered
+      Features:
+      - Strawberries and cherries now spawn less the further you progress into the game
+      - Cheats! bored of the normal game? enable the following cheats (will disable high score saving);
+        - Fast Drop: lowers the cooldown of fruits
+        - No Game Over: disables game overs
+      - Earthquakes!!!
+        - Every 25 balls dropped you get access to an earthquake!
+        - Pressing "e" or the button on the UI will activate an earthquake
 
-      Animations and new sprites are coming soon.
-      This game is still in like, beta beta beta, so expect breakaege. And tell me if it happens.
-      
-      -william
+      Fixes:
+      - game over dialog no longer appears more than once on game over 
+
+      Tweaks:
+      - removed intro background (kept p5play logo)
+      - made the area for the "loseline" to appear smaller
+        - made the phisical line thinner (to make it less scary)
       `
     );
     localStorage.setItem("version", chrome.runtime.getManifest().version);

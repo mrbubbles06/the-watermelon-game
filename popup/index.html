@@ -107,6 +107,11 @@
       .highScoreTitle {
         grid-column: span 2;
       }
+
+      #p5play-intro {
+        background-color: transparent !important;
+        pointer-events: none;
+      }
     </style>
   </head>
 
@@ -154,6 +159,19 @@
       </div>
       <div>
         <a href="https://mrbubbles.pages.dev/suikagame/credits.txt">Credits</a>
+      </div>
+      <div>
+        <p>Enabling these options disables saving a high score</p>
+        <input type="checkbox" name="fastDrop" id="fastDrop" />
+        <label for="fastDrop">Fast Drop</label>
+        <br />
+        <input type="checkbox" name="noGameOver" id="noGameOver" />
+        <label for="noGameOver">Disable Game Over</label>
+      </div>
+      <div>
+        <p>Num of shakes: <span id="shakeCount">0</span></p>
+        <button disabled="true" id="shake">Shake!</button>
+        <span id="shakeCountdown"></span>
       </div>
     </div>
     <script src="p5.min.js"></script>
