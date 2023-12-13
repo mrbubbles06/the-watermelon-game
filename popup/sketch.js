@@ -40,6 +40,7 @@ const domShakeBtn = document.getElementById("shake");
 domShakeBtn.addEventListener("click", shakeClicked);
 const domShakeCount = document.getElementById("shakeCount");
 const domShakeCountdown = document.getElementById("shakeCountdown");
+const domPowerSaver = document.getElementById("powerSaver");
 document.getElementById("resetHighScore").addEventListener("click", resetHighScore);
 
 let enabledCheats = false;
@@ -376,6 +377,11 @@ function createBall(x, y, tier) {
   // ball.text = ball.diameter;
   return ball;
 }
+
+domPowerSaver.addEventListener("change", (e) => {
+  if (domPowerSaver.checked) frameRate(30);
+  else frameRate(60);
+});
 
 domFastDrop.addEventListener("change", (e) => {
   if (domFastDrop.checked) ballTimeout = 100;
