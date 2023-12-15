@@ -1,14 +1,20 @@
 // new Q5();
 /*
 Completed features added since update:
+-Saving and loading!!!!
+  -May be buggy, despite heavy testing
+-Cross computer syncing! For all the people on a chromebook.
+  -Your highscore, saved games, and other secret stats are now saved across devices!
 
 In progress features added since update:
-- points appearing floating from fruits when combining
+-Points appearing floating from fruits when combining
 
 Bugs squashed:
+-Fruits no longer have different hitboxes depending on the state that they were created
 
 Tweaks:
-
+-Made the grape hitbox slightly smaller
+-Changed the background colors, as well as font.
 */
 
 let balls,
@@ -42,6 +48,7 @@ const domShakeCount = document.getElementById("shakeCount");
 const domShakeCountdown = document.getElementById("shakeCountdown");
 const domPowerSaver = document.getElementById("powerSaver");
 document.getElementById("resetHighScore").addEventListener("click", resetHighScore);
+document.getElementById("newGame").addEventListener("click", newGame);
 
 let enabledCheats = false;
 
@@ -60,7 +67,7 @@ let images = [
 ];
 
 let points = [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78];
-let diameters = [30, 46, 75, 80, 100, 125, 150, 177, 200, 230, 290];
+let diameters = [30, 46, 70, 80, 100, 125, 150, 177, 200, 230, 290];
 // let scales = [0.1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,]
 
 let score = 0;
@@ -71,8 +78,11 @@ let ballTimeout = 1000;
 let shakeStrength = 50;
 
 let numOfShakes = 0;
+let canShake = true;
 
-function setup() {
+let loading = true;
+
+async function setup() {
   new Canvas(448, 599);
   world.gravity.y = 20;
 
@@ -128,16 +138,20 @@ function setup() {
 
   canDrop = true;
 
-  highScore = getHighScore();
+  highScore = await getHighScore();
 
   renderDomScore();
+  chrome.storage.sync.get(["savedGame"]).then((result) => {
+    if (result.savedGame) loadCurrentState();
+    else loading = false;
+  });
 }
 
 let lossAreaTimer = 0;
 let tempBallShakeTimer = 0;
 
 function draw() {
-  background("#edecc5");
+  background("#FDFBEC");
 
   // renderStats();
   if (enabledCheats) background("black");
@@ -175,6 +189,70 @@ function draw() {
   strokeWeight(1);
 }
 
+function saveCurrentState() {
+  let state = [];
+  for (let a of balls) {
+    if (a.isCloud) continue;
+    let ball = {};
+    ball.x = a.x;
+    ball.y = a.y;
+    ball.tier = a.tier;
+    ball.diameter = a.diameter;
+    ball.vel = a.velocity;
+    state.push(ball);
+  }
+  state.push({ cloudTier: cloudBall.tier }, { nextTier: nextBall.tier });
+  state.push(
+    { currentScore: score },
+    {
+      cheats: {
+        enabled: enabledCheats,
+        fastDrop: domFastDrop.checked,
+        noGameOver: domNoGameOver.checked,
+      },
+    },
+    { balls: ballsDropped }
+  );
+  chrome.storage.sync.remove(["savedGame"]);
+  chrome.storage.sync.set({ savedGame: state });
+}
+
+async function loadCurrentState() {
+  let state = [];
+  await chrome.storage.sync.get(["savedGame"]).then((result) => {
+    state = result.savedGame;
+  });
+  for (let a of state) {
+    if (typeof a.cloudTier == "number") {
+      cloudBall.remove();
+      createCloudBall(cloud.x, cloud.y, a.cloudTier);
+      continue;
+    }
+    if (typeof a.nextTier == "number") {
+      queueBall(a.nextTier);
+      continue;
+    }
+    if (typeof a.currentScore == "number") {
+      score = a.currentScore;
+      renderDomScore();
+      continue;
+    }
+    if (typeof a.cheats == "object") {
+      enabledCheats = a.cheats.enabled;
+      a.cheats.fastDrop ? domFastDrop.click() : 0;
+      a.cheats.noGameOver ? domNoGameOver.click() : 0;
+      console.log(a.cheats);
+      continue;
+    }
+    if (typeof a.balls == "number") {
+      ballsDropped = a.balls;
+      continue;
+    }
+    createBall(a.x, a.y, a.tier, a.vel);
+  }
+  loading = false;
+}
+
 let doShake = false;
 async function doEarthquake() {
   if (!doShake) return;
@@ -190,11 +268,12 @@ async function doEarthquake() {
 }
 
 function shakeClicked() {
-  if (domShakeBtn.disabled || numOfShakes < 1) return;
+  if (!canShake || numOfShakes < 1) return;
   let shakeCountdown = 15;
   numOfShakes--;
   domShakeCount.innerText = numOfShakes;
   doShake = true;
+  canShake = false;
   domShakeBtn.disabled = true;
   domShakeCountdown.style.display = "";
   domShakeCountdown.innerText = 15;
@@ -205,6 +284,7 @@ function shakeClicked() {
   }, 1000);
   setTimeout(() => {
     domShakeCountdown.style.display = "none";
+    canShake = true;
     if (numOfShakes == 0) return;
     domShakeBtn.disabled = false;
   }, 15000);
@@ -237,30 +317,39 @@ function renderDomBall() {
 }
 
 function gameOver() {
-  if (isGameOver || doShake) return;
+  if (isGameOver || doShake || loading) return;
+  chrome.storage.sync.remove("savedGame");
   isGameOver = true;
-  alert("You lost!");
+  alert("You lost! (the game)");
   location.reload();
 }
 
-function resetHighScore() {
-  if (
-    window.confirm(
-      "Are you super duper sure you want to reset your high score?\n(This will also reset your current game)"
-    )
-  ) {
-    storeItem("highscore", 0);
+function newGame() {
+  if (confirm("Are you sure you want to start a new game?")) {
+    chrome.storage.sync.remove("savedGame");
     location.reload();
+  }
+}
+
+function resetHighScore() {
+  if (window.confirm("Are you super duper sure you want to reset your high score?")) {
+    saveHighScore(0);
+    highScore = 0;
+    renderDomScore();
   } else return;
 }
 
 function saveHighScore(score) {
   if (enabledCheats) return;
-  storeItem("highscore", score);
+  chrome.storage.sync.set({ highScore: score });
 }
 
-function getHighScore() {
-  return getItem("highscore");
+async function getHighScore() {
+  let hs = await chrome.storage.sync.get(["highScore"]).then((result) => {
+    return result.highScore;
+    // console.log(typeof result.highScore);
+  });
+  return hs;
 }
 
 async function destroyFruits(fruit1, fruit2) {
@@ -277,7 +366,7 @@ async function destroyFruits(fruit1, fruit2) {
   let bY = fruit2.y;
   let bIndex = balls.indexOf(fruit2);
   score += points[tier];
-  if (score > getHighScore()) {
+  if (score > (await getHighScore())) {
     highScore = score;
     saveHighScore(highScore);
   }
@@ -324,7 +413,9 @@ function mouseReleased() {
   if (!canDrop) return;
   canDrop = false;
   ballsDropped++;
-  storeItem("ballsDropped", getItem("ballsDropped") + 1);
+  chrome.storage.sync.get("ballsDropped").then((result) => {
+    chrome.storage.sync.set({ ballsDropped: result.ballsDropped + 1 });
+  });
   let ball = cloudBall;
   cloudBall = undefined;
 
@@ -342,38 +433,40 @@ function mouseReleased() {
   // ball.text = ball.diameter;
   ball.resetMass();
   setTimeout(() => {
-    createCloudBall(cloud.x, cloud.y, nextBall);
+    createCloudBall(cloud.x, cloud.y, nextBall.tier);
     queueBall();
+    saveCurrentState();
     canDrop = true;
   }, ballTimeout);
 }
 
-function queueBall() {
-  nextBall.tier = getWeightedBall(ballsDropped);
+function queueBall(t = getWeightedBall(ballsDropped)) {
+  nextBall.tier = t;
   nextBall.diameter = diameters[nextBall.tier];
   nextBall.img = images[nextBall.tier];
   // nextBall.text = nextBall.diameter;
   renderDomBall();
 }
 
-function createCloudBall(x, y, nb) {
+function createCloudBall(x, y, tier) {
   cloudBall = new balls.Sprite(x, y);
-  cloudBall.tier = nb.tier;
-  cloudBall.img = images[cloudBall.tier];
+  cloudBall.tier = tier;
+  cloudBall.img = images[tier];
   cloudBall.collider = "s";
-  cloudBall.diameter = nb.diameter;
+  cloudBall.diameter = diameters[tier];
   // cloudBall.text = cloudBall.diameter;
   cloudBall.isCloud = true;
 }
 
-function createBall(x, y, tier) {
+function createBall(x, y, tier, vel = undefined) {
   let ball = new balls.Sprite(x, y);
   ball.tier = tier;
-  ball.diameter = diameters[ball.tier];
   ball.img = images[tier];
   ball.collider = "d";
   ball.bounciness = 0;
+  ball.diameter = diameters[ball.tier];
   ball.resetMass();
+  if (vel) ball.velocity = vel;
   // ball.text = ball.diameter;
   return ball;
 }

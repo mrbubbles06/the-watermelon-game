@@ -5,22 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>p5play</title>
     <link
-      href="https://fonts.googleapis.com/css?family=Lexend+Exa:100,200,300,regular,500,600,700,800,900"
+      href="https://fonts.googleapis.com/css?family=Nanum+Myeongjo:regular,700,800"
       rel="stylesheet" />
     <link rel="shortcut icon" href="assets/watermelon.png" />
     <style>
       html,
       body {
-        background-color: #edecc9;
+        background-color: #bfcca4;
         margin: 0;
         padding: 0;
         overflow: hidden;
-        font-family: Lexend Exa;
+        font-family: Nanum Myeongjo;
         font-size: 16px;
         font-style: normal;
-        font-weight: 900;
+        font-weight: 400;
         line-height: 100%; /* 32px */
-        letter-spacing: -2.88px;
+        /* letter-spacing: -2.88px; */
       }
 
       body {
@@ -40,7 +40,6 @@
 
       .beforeCanvas,
       .afterCanvas {
-        background: #edecc9;
         height: 100%;
         width: 100%;
         grid-row: 1 / 2;
@@ -100,8 +99,9 @@
       }
 
       #highscore {
-        color: #f4be33;
+        color: #675424;
         justify-self: start;
+        font-weight: 600;
       }
 
       .highScoreTitle {
@@ -111,6 +111,10 @@
       #p5play-intro {
         background-color: transparent !important;
         pointer-events: none;
+      }
+
+      a {
+        color: rgb(17, 103, 168);
       }
     </style>
   </head>
@@ -129,14 +133,14 @@
           <path d="M1 1H22V22H1V1Z" fill="white" fill-opacity="0.01" />
           <path
             d="M11.5 20.25C16.3325 20.25 20.25 16.3325 20.25 11.5C20.25 6.66751 16.3325 2.75 11.5 2.75C6.66751 2.75 2.75 6.66751 2.75 11.5C2.75 16.3325 6.66751 20.25 11.5 20.25Z"
-            fill="#EEC945"
-            stroke="#F4BE33"
+            fill="#675424"
+            stroke="#675424"
             stroke-width="4.66704"
             stroke-linecap="round"
             stroke-linejoin="round" />
           <path
             d="M6.6875 13.6875V9.3125L9.3125 10.625L11.5 7.5625L13.6875 10.625L16.3125 9.3125V13.6875H6.6875Z"
-            fill="#F8D043"
+            fill="#675424"
             stroke="white"
             stroke-width="2"
             stroke-linecap="round"
@@ -150,7 +154,10 @@
           >Feedback / Bug report</a
         >
       </div>
-      <div><button id="resetHighScore">Reset High Score</button></div>
+      <div>
+        <button id="resetHighScore">Reset High Score</button>
+        <button id="newGame">New Game</button>
+      </div>
       <div>
         <a href="https://mrbubbles.pages.dev/suikagame/faq#slow/"
           >Why is my game running slow?</a

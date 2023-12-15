@@ -12,27 +12,38 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  if (localStorage.getItem("version") != chrome.runtime.getManifest().version) {
-    alert(
-      `New update!
-      Features:
-      - Strawberries and cherries now spawn less the further you progress into the game
-      - Cheats! bored of the normal game? enable the following cheats (will disable high score saving);
-        - Fast Drop: lowers the cooldown of fruits
-        - No Game Over: disables game overs
-      - Earthquakes!!!
-        - Every 25 balls dropped you get access to an earthquake!
-        - Pressing "e" or the button on the UI will activate an earthquake
+  chrome.storage.sync.get("version").then((result) => {
+    if (result.version != chrome.runtime.getManifest().version) {
+      alert(
+        `New update!
+        Features:
+        -Saving and loading!!!!
+          -Auto saves after every ball drop. Loads on game start. Try it out!
+        -Cross computer syncing! For all the people on a chromebook.
+          -Your highscore, saved games, and other secret stats are now saved across devices!
 
-      Fixes:
-      - game over dialog no longer appears more than once on game over 
+        Bugs squashed:
+        -Fruits no longer have different hitboxes depending on the state that they were created.
+        -Certain fruits (like the pineapple and cherry) have had their sprites changed to fix collision issues.
 
-      Tweaks:
-      - removed intro background (kept p5play logo)
-      - made the area for the "loseline" to appear smaller
-        - made the phisical line thinner (to make it less scary)
+        Tweaks:
+        -Made the grape hitbox slightly smaller.
+        -Changed the background colors, as well as font.
       `
-    );
-    localStorage.setItem("version", chrome.runtime.getManifest().version);
-  }
+      );
+      chrome.storage.sync.set({ version: chrome.runtime.getManifest().version });
+    }
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  chrome.storage.sync.get("dataTransferred").then((result) => {
+    if (!result.dataTransferred) {
+      chrome.storage.sync.set({
+        highScore: localStorage.getItem("highscore"),
+        ballsDropped: localStorage.getItem("ballsDropped"),
+        dataTransferred: true,
+      });
+    }
+  });
 });
